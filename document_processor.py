@@ -22,7 +22,8 @@ llm = ChatNVIDIA(model="meta/llama-3.1-70b-instruct")
 
 # Initialize Sentence Transformer for embeddings
 embedding_model = SentenceTransformer('all-mpnet-base-v2')
-embedding_model = embedding_model.to('cuda')
+# For Azure deployment, use CPU only
+# embedding_model = embedding_model.to('cuda')
 
 # Create storage directories
 os.makedirs("embeddings", exist_ok=True)

@@ -14,7 +14,8 @@ load_dotenv()
 class SimpleQASystem:
     def __init__(self):
         self.embedding_model = SentenceTransformer('all-mpnet-base-v2')
-        self.embedding_model = self.embedding_model.to('cuda') 
+        # For Azure deployment, use CPU only
+        # self.embedding_model = self.embedding_model.to('cuda') 
         self.llm = ChatNVIDIA(model="meta/llama-3.1-70b-instruct")
         self.master_index_path = "metadata/master_index.json"
         

@@ -1,49 +1,53 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
+
 name: Build and deploy Python app to Azure Web App - x2XCoders
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: fin-rag-api    # Change this to your actual app name
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
-  PYTHON_VERSION: '3.11'
+  AZURE_WEBAPP_NAME: x2XCoders
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: read #This is required for actions/checkout
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Create and start virtual environment
-      run: |
-        python -m venv venv
-        source venv/bin/activate
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+      
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements-azure.txt
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        
+      - name: Create necessary directories
+        run: |
+          mkdir -p data embeddings metadata chunks temp_downloads
 
-    - name: Install dependencies
-      run: |
-        source venv/bin/activate
-        python -m pip install --upgrade pip
-        pip install -r requirements-azure.txt
-      env:
-        NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-
-    - name: Create necessary directories
-      run: |
-        mkdir -p data embeddings metadata chunks temp_downloads
-
-    - name: Test application startup
-      run: |
-        source venv/bin/activate
-        python -c "
+      - name: Test application startup
+        run: |
+          source venv/bin/activate
+          python -c "
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -51,48 +55,63 @@ print('Environment check passed')
 print('NVIDIA_API_KEY present:', bool(os.getenv('NVIDIA_API_KEY')))
 "
 
+      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+
+      - name: Upload artifact for deployment jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          path: |
+            .
+            !venv/
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
     steps:
-    - name: Download artifact from build job
-      uses: actions/download-artifact@v4
-      with:
-        name: python-app
-        path: .
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
+      
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9E064B116566416FBAA864D08B79C3CE }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C8ECEF7218F047AFA550E9E54BE0A50C }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_BCB9748C43BA4520AFEE2232B3DD16B6 }}
 
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: 'x2XCoders'
+          slot-name: 'Production'
 
-    - name: Configure environment variables
-      run: |
-        az webapp config appsettings set \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group fin-rag-rg \
-          --settings NVIDIA_API_KEY=${{ secrets.NVIDIA_API_KEY }} \
-          --output table
+      - name: Configure environment variables
+        run: |
+          az webapp config appsettings set \
+            --name x2XCoders \
+            --resource-group fin-rag-rg \
+            --settings NVIDIA_API_KEY=${{ secrets.NVIDIA_API_KEY }} \
+            --output table
 
-    - name: Restart Azure Web App
-      run: |
-        az webapp restart \
-          --name ${{ env.AZURE_WEBAPP_NAME }} \
-          --resource-group fin-rag-rg
+      - name: Restart Azure Web App
+        run: |
+          az webapp restart \
+            --name x2XCoders \
+            --resource-group fin-rag-rg
 
-    - name: Wait for deployment
-      run: |
-        sleep 30
-        echo "Deployment completed. Checking status..."
+      - name: Wait for deployment
+        run: |
+          sleep 30
+          echo "Deployment completed. Checking status..."
 
-    - name: Test deployment
-      run: |
-        echo "Testing deployment..."
-        curl -f https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/docs || echo "App might still be starting up" 
+      - name: Test deployment
+        run: |
+          echo "Testing deployment..."
+          curl -f https://x2XCoders.azurewebsites.net/docs || echo "App might still be starting up" 

@@ -1,49 +1,39 @@
-# Core ML/AI Libraries (CPU versions for Azure)
-torch==2.3.0+cpu
-torchvision==0.18.0+cpu
-torchaudio==2.3.0+cpu
-sentence-transformers
-faiss-cpu
+# Fixed requirements.txt for Azure deployment
+fastapi==0.104.1
+uvicorn==0.24.0
+python-dotenv==1.0.0
+requests==2.31.0
 
-# LangChain and NVIDIA AI
-langchain
-langchain-nvidia-ai-endpoints
+# PDF processing
+pdfplumber==0.10.3
 
-# PDF Processing
-pdfplumber
+# Data processing
+numpy==1.24.3
+pandas==2.0.3
 
-# Data Processing
-numpy>=1.21
-pandas
-scikit-image==0.18.0
+# Machine Learning - Fixed PyTorch versions
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
 
-# Image Processing (for document analysis)
-opencv-python
-Pillow
-tifffile==2020.9.3
-imageio
+# Transformers and embeddings
+transformers==4.35.2
+sentence-transformers==2.2.2
+huggingface-hub==0.19.4
 
-# Web Framework (for API)
-fastapi
-uvicorn
+# Vector database
+faiss-cpu==1.7.3
 
-# HTTP Requests
-requests
+# Additional dependencies
+scikit-learn==1.3.2
+nltk==3.8.1
+beautifulsoup4==4.12.2
+lxml==4.9.3
 
-# Environment Management
-python-dotenv
+# Web framework for Azure deployment
+flask==2.3.3
+flask-cors==4.0.0
+gunicorn==21.2.0
 
-# Utilities
-tqdm
-matplotlib
-tensorboard
-tensorboardX
-ipython
-dominate==2.6.0
-lpips==0.1.3
-
-# Optional: Keras compatibility fix
+# Optional: For better performance
 tf-keras
-
-# Azure specific
-wfastcgi 

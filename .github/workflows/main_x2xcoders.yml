@@ -36,7 +36,7 @@ jobs:
         run: |
           source venv/bin/activate
           python -m pip install --upgrade pip
-          pip install -r requirements-azure.txt
+          pip install -r requirements.txt
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         
@@ -114,4 +114,4 @@ print('NVIDIA_API_KEY present:', bool(os.getenv('NVIDIA_API_KEY')))
       - name: Test deployment
         run: |
           echo "Testing deployment..."
-          curl -f https://x2XCoders.azurewebsites.net/docs || echo "App might still be starting up" 
+          curl -f https://x2XCoders.azurewebsites.net/docs || echo "App might still be starting up"
